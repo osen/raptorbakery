@@ -3,7 +3,7 @@ import bpy
 
 class Process:
 	session = None
-	size = 128
+	size = 256
 
 	def __init__(self, session):
 		self.session = session
@@ -18,6 +18,8 @@ class Process:
 			if obj.type != 'MESH':
 				continue
 
+			bpy.context.scene.cycles.samples = 24
+			bpy.context.scene.cycles.use_square_samples = True
 			self.bake(obj)
 
 	def selectObj(self, obj):
@@ -141,9 +143,13 @@ class Process:
 		mg.mat = mat
 		nodes = mat.node_tree.nodes
 
+		bpy.ops.image.new(name="tmp", width=1, height=1, color=(1, 1, 1, 1))
+		tex = bpy.data.images['tmp']
+
 		for node in nodes:
 			if node.type == 'TEX_IMAGE':
 				mg.texture = node.image
+				node.image = tex
 				break
 
 		if mg.texture != None:

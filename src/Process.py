@@ -22,20 +22,6 @@ class Process:
 			bpy.context.scene.cycles.use_square_samples = True
 			self.bake(obj)
 
-	def selectObj(self, obj):
-		bpy.ops.object.select_all(action='DESELECT')
-
-		if obj != None:
-			if self.session.version <= 279:
-				obj.select = True
-			else:
-				obj.select_set(state=True)
-
-		if self.session.version <= 279:
-			bpy.context.scene.objects.active = obj
-		else:
-			bpy.context.view_layer.objects.active = obj
-
 	def bake(self, obj):
 		print("Baking")
 
@@ -43,9 +29,9 @@ class Process:
 			print("Ignoring Mesh: " + obj.name)
 			return
 
-		self.selectObj(obj)
+		self.session.selectObj(obj)
 		bpy.ops.object.bake(type='SHADOW')
-		self.selectObj(None)
+		self.session.selectObj(None)
 
 	def object(self, obj):
 		print("Processing Mesh: " + obj.name)
@@ -68,9 +54,9 @@ class Process:
 			lmuv = obj.data.uv_layers.new(name="LightMap")
 			obj.data.uv_layers.active = lmuv
 
-		self.selectObj(obj)
+		self.session.selectObj(obj)
 		bpy.ops.uv.lightmap_pack(PREF_CONTEXT='ALL_FACES', PREF_PACK_IN_ONE=False)
-		self.selectObj(None)
+		self.session.selectObj(None)
 
 		lightMap = bpy.data.images.new("LightMap_" + obj.name, width=self.size, height=self.size)
 
@@ -143,13 +129,10 @@ class Process:
 		mg.mat = mat
 		nodes = mat.node_tree.nodes
 
-		bpy.ops.image.new(name="tmp", width=1, height=1, color=(1, 1, 1, 1))
-		tex = bpy.data.images['tmp']
-
 		for node in nodes:
 			if node.type == 'TEX_IMAGE':
 				mg.texture = node.image
-				node.image = tex
+				node.image = self.session.whiteTexture
 				break
 
 		if mg.texture != None:

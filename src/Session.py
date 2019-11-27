@@ -43,6 +43,9 @@ class Session:
 		ver = bpy.app.version
 		self.version = ver[0] * 100 + ver[1]
 
+		bpy.ops.image.new(name="RaptorWhite", width=1, height=1, color=(1, 1, 1, 1))
+		self.whiteTexture = bpy.data.images['RaptorWhite']
+
 	def selectObj(self, obj):
 		bpy.ops.object.select_all(action='DESELECT')
 

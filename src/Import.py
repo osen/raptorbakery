@@ -12,7 +12,6 @@ class Import:
 		bpy.ops.object.select_all(action='DESELECT')
 
 	def findPath(self):
-		print("Hello")
 		args = sys.argv
 		found = -1
 

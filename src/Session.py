@@ -42,3 +42,17 @@ class Session:
 
 		ver = bpy.app.version
 		self.version = ver[0] * 100 + ver[1]
+
+	def selectObj(self, obj):
+		bpy.ops.object.select_all(action='DESELECT')
+
+		if obj != None:
+			if self.version <= 279:
+				obj.select = True
+			else:
+				obj.select_set(state=True)
+
+		if self.version <= 279:
+			bpy.context.scene.objects.active = obj
+		else:
+			bpy.context.view_layer.objects.active = obj

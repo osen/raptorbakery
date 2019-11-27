@@ -7,6 +7,7 @@ class Initial:
 ses = Session()
 ini = Initial()
 imp = Import()
+cle = Clean(ses)
 pro = Process(ses)
 exp = Export(ses)
 

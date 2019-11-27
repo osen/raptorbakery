@@ -3,7 +3,7 @@ import bpy
 
 class Process:
 	session = None
-	size = 256
+	size = 128
 
 	def __init__(self, session):
 		self.session = session

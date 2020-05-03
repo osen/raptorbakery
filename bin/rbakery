@@ -1,0 +1,15 @@
+#!/bin/sh
+
+BLENDER=blender
+PREFIX="$(cd "$(dirname "$(which "$0")")" && cd .. && pwd)"
+TMP_PY="$HOME/rbakery.py"
+
+if [ -z "$1" ] || [ -z "$2" ]; then
+  echo "Usage: $0 <input.obj> <output.obj>"
+  exit 1
+fi
+
+cat "$PREFIX/libdata/python/"*.py > "$TMP_PY"
+echo "main()" >> "$TMP_PY"
+
+"$BLENDER" --python "$TMP_PY" -- "$@"

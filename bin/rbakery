@@ -12,4 +12,12 @@ fi
 cat "$PREFIX/libdata/python/"*.py > "$TMP_PY"
 echo "main()" >> "$TMP_PY"
 
-"$BLENDER" --python "$TMP_PY" -- "$@"
+"$BLENDER" --background --python "$TMP_PY" -- "$@"
+
+RPREVIEW="$PREFIX/build/rpreview"
+
+if [ -e "$PREFIX/bin/rpreview" ]; then
+  RPREVIEW="$PREFIX/bin/rpreview"
+fi
+
+"$RPREVIEW" "$2"

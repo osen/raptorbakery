@@ -36,9 +36,11 @@ def setup(state):
   #state.lightmapSize = 1024
   state.lightmapSize = 512
   #state.lightmapSize = 64
+  #state.lightmapSize = 128
 
   #state.lightMapFormat = "jpg"
   state.lightMapFormat = "png"
+  state.maxBrightness = 100000
 
 #######################################################################
 # importObj

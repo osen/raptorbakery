@@ -3,6 +3,7 @@
 #include "Mesh.h"
 #include "primitives.h"
 #include "Texture.h"
+#include "Face.h"
 
 #define STENT_IMPLEMENTATION
 #include "stent.h"
@@ -88,6 +89,7 @@ ref(ReMesh) ReContextCreateMesh(ref(ReContext) ctx)
 
   rtn = allocate(ReMesh);
   _(rtn).context = ctx;
+  _(rtn).faces = vector_new(struct ReFace);
 
   return rtn;
 }

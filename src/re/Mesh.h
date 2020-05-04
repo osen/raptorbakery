@@ -7,6 +7,7 @@
 
 struct ReMesh;
 struct ReBuffer;
+struct ReFace;
 
 void ReMeshDestroy(ref(ReMesh) ctx);
 ref(ReBuffer) ReMeshPositionBuffer(ref(ReMesh) ctx);
@@ -18,3 +19,4 @@ void ReMeshSetPositionBuffer(ref(ReMesh) ctx, ref(ReBuffer) buffer);
 void ReMeshSetNormalBuffer(ref(ReMesh) ctx, ref(ReBuffer) buffer);
 void ReMeshSetTextureBuffer(ref(ReMesh) ctx, ref(ReBuffer) buffer);
 void ReMeshSetLightMapBuffer(ref(ReMesh) ctx, ref(ReBuffer) buffer);
+void ReMeshAddFace(ref(ReMesh) ctx, struct ReFace face);

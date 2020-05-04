@@ -7,6 +7,7 @@
 #include "Mesh.h"
 #include "Buffer.h"
 #include "Texture.h"
+#include "Face.h"
 
 typedef struct ReVec2 ReVec2;
 typedef struct ReVec3 ReVec3;

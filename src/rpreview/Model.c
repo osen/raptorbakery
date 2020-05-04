@@ -9,22 +9,6 @@
 
 #include <stdio.h>
 
-struct Vertex
-{
-  struct ReVec3 position;
-  struct ReVec2 texture;
-  struct ReVec3 normal;
-  struct ReVec2 lightMap;
-};
-
-struct Face
-{
-  struct Vertex a;
-  struct Vertex b;
-  struct Vertex c;
-  struct Vertex d;
-};
-
 struct Material
 {
   ref(sstream) name;
@@ -229,134 +213,50 @@ ref(Model) ModelLoad(ref(ReContext) context, char *path)
     else if(strcmp(sstream_cstr(vector_at(tokens, 0)), "f") == 0)
     {
       ref(MaterialGroup) mg = NULL;
-      struct Face f = {0};
-      struct Face qf = {0};
+      struct ReFace f = {0};
+      struct ReFace qf = {0};
+
+      mg = ModelMaterialGroup(rtn, ct);
 
       SplitString(vector_at(tokens, 1), '/', sub);
       if(vector_size(sub) >= 1 && sstream_length(vector_at(sub, 0)) > 0) f.a.position = vector_at(positions, atoi(sstream_cstr(vector_at(sub, 0))) - 1);
-      if(vector_size(sub) >= 2 && sstream_length(vector_at(sub, 1)) > 0) f.a.texture = vector_at(texcoords, atoi(sstream_cstr(vector_at(sub, 1))) - 1);
+      if(vector_size(sub) >= 2 && sstream_length(vector_at(sub, 1)) > 0) f.a.texCoord = vector_at(texcoords, atoi(sstream_cstr(vector_at(sub, 1))) - 1);
       if(vector_size(sub) >= 3 && sstream_length(vector_at(sub, 2)) > 0) f.a.normal = vector_at(normals, atoi(sstream_cstr(vector_at(sub, 2))) - 1);
-      if(vector_size(sub) >= 4 && sstream_length(vector_at(sub, 3)) > 0) f.a.lightMap = vector_at(lightmaps, atoi(sstream_cstr(vector_at(sub, 3))) - 1);
+      if(vector_size(sub) >= 4 && sstream_length(vector_at(sub, 3)) > 0) f.a.lmCoord = vector_at(lightmaps, atoi(sstream_cstr(vector_at(sub, 3))) - 1);
 
       SplitString(vector_at(tokens, 2), '/', sub);
       if(vector_size(sub) >= 1 && sstream_length(vector_at(sub, 0)) > 0) f.b.position = vector_at(positions, atoi(sstream_cstr(vector_at(sub, 0))) - 1);
-      if(vector_size(sub) >= 2 && sstream_length(vector_at(sub, 1)) > 0) f.b.texture = vector_at(texcoords, atoi(sstream_cstr(vector_at(sub, 1))) - 1);
+      if(vector_size(sub) >= 2 && sstream_length(vector_at(sub, 1)) > 0) f.b.texCoord = vector_at(texcoords, atoi(sstream_cstr(vector_at(sub, 1))) - 1);
       if(vector_size(sub) >= 3 && sstream_length(vector_at(sub, 2)) > 0) f.b.normal = vector_at(normals, atoi(sstream_cstr(vector_at(sub, 2))) - 1);
-      if(vector_size(sub) >= 4 && sstream_length(vector_at(sub, 3)) > 0) f.b.lightMap = vector_at(lightmaps, atoi(sstream_cstr(vector_at(sub, 3))) - 1);
+      if(vector_size(sub) >= 4 && sstream_length(vector_at(sub, 3)) > 0) f.b.lmCoord = vector_at(lightmaps, atoi(sstream_cstr(vector_at(sub, 3))) - 1);
 
       SplitString(vector_at(tokens, 3), '/', sub);
       if(vector_size(sub) >= 1 && sstream_length(vector_at(sub, 0)) > 0) f.c.position = vector_at(positions, atoi(sstream_cstr(vector_at(sub, 0))) - 1);
-      if(vector_size(sub) >= 2 && sstream_length(vector_at(sub, 1)) > 0) f.c.texture = vector_at(texcoords, atoi(sstream_cstr(vector_at(sub, 1))) - 1);
+      if(vector_size(sub) >= 2 && sstream_length(vector_at(sub, 1)) > 0) f.c.texCoord = vector_at(texcoords, atoi(sstream_cstr(vector_at(sub, 1))) - 1);
       if(vector_size(sub) >= 3 && sstream_length(vector_at(sub, 2)) > 0) f.c.normal = vector_at(normals, atoi(sstream_cstr(vector_at(sub, 2))) - 1);
-      if(vector_size(sub) >= 4 && sstream_length(vector_at(sub, 3)) > 0) f.c.lightMap = vector_at(lightmaps, atoi(sstream_cstr(vector_at(sub, 3))) - 1);
+      if(vector_size(sub) >= 4 && sstream_length(vector_at(sub, 3)) > 0) f.c.lmCoord = vector_at(lightmaps, atoi(sstream_cstr(vector_at(sub, 3))) - 1);
+
+      ReMeshAddFace(_(mg).mesh, f);
 
       if(vector_size(tokens) > 4)
       {
         qf.a.position = f.c.position;
-        qf.a.texture = f.c.texture;
+        qf.a.texCoord = f.c.texCoord;
         qf.a.normal = f.c.normal;
-        qf.a.lightMap = f.c.lightMap;
+        qf.a.lmCoord = f.c.lmCoord;
 
         SplitString(vector_at(tokens, 4), '/', sub);
         if(vector_size(sub) >= 1 && sstream_length(vector_at(sub, 0)) > 0) qf.b.position = vector_at(positions, atoi(sstream_cstr(vector_at(sub, 0))) - 1);
-        if(vector_size(sub) >= 2 && sstream_length(vector_at(sub, 1)) > 0) qf.b.texture = vector_at(texcoords, atoi(sstream_cstr(vector_at(sub, 1))) - 1);
+        if(vector_size(sub) >= 2 && sstream_length(vector_at(sub, 1)) > 0) qf.b.texCoord = vector_at(texcoords, atoi(sstream_cstr(vector_at(sub, 1))) - 1);
         if(vector_size(sub) >= 3 && sstream_length(vector_at(sub, 2)) > 0) qf.b.normal = vector_at(normals, atoi(sstream_cstr(vector_at(sub, 2))) - 1);
-        if(vector_size(sub) >= 4 && sstream_length(vector_at(sub, 3)) > 0) qf.b.lightMap = vector_at(lightmaps, atoi(sstream_cstr(vector_at(sub, 3))) - 1);
+        if(vector_size(sub) >= 4 && sstream_length(vector_at(sub, 3)) > 0) qf.b.lmCoord = vector_at(lightmaps, atoi(sstream_cstr(vector_at(sub, 3))) - 1);
 
         qf.c.position = f.a.position;
-        qf.c.texture = f.a.texture;
+        qf.c.texCoord = f.a.texCoord;
         qf.c.normal = f.a.normal;
-        qf.c.lightMap = f.a.lightMap;
-      }
+        qf.c.lmCoord = f.a.lmCoord;
 
-      mg = ModelMaterialGroup(rtn, ct);
-
-      if(vector_size(positions) > 0)
-      {
-        ref(ReBuffer) b = ReMeshPositionBuffer(_(mg).mesh);
-
-        if(!b)
-        {
-          b = ReContextCreateBuffer(context);
-          ReMeshSetPositionBuffer(_(mg).mesh, b);
-        }
-
-        ReBufferAddVec3(b, f.a.position);
-        ReBufferAddVec3(b, f.b.position);
-        ReBufferAddVec3(b, f.c.position);
-
-        if(vector_size(tokens) > 4)
-        {
-          ReBufferAddVec3(b, qf.a.position);
-          ReBufferAddVec3(b, qf.b.position);
-          ReBufferAddVec3(b, qf.c.position);
-        }
-      }
-
-      if(vector_size(texcoords) > 0)
-      {
-        ref(ReBuffer) b = ReMeshTextureBuffer(_(mg).mesh);
-
-        if(!b)
-        {
-          b = ReContextCreateBuffer(context);
-          ReMeshSetTextureBuffer(_(mg).mesh, b);
-        }
-
-        ReBufferAddVec2(b, f.a.texture);
-        ReBufferAddVec2(b, f.b.texture);
-        ReBufferAddVec2(b, f.c.texture);
-
-        if(vector_size(tokens) > 4)
-        {
-          ReBufferAddVec2(b, qf.a.texture);
-          ReBufferAddVec2(b, qf.b.texture);
-          ReBufferAddVec2(b, qf.c.texture);
-        }
-      }
-
-      if(vector_size(normals) > 0)
-      {
-        ref(ReBuffer) b = ReMeshNormalBuffer(_(mg).mesh);
-
-        if(!b)
-        {
-          b = ReContextCreateBuffer(context);
-          ReMeshSetNormalBuffer(_(mg).mesh, b);
-        }
-
-        ReBufferAddVec3(b, f.a.normal);
-        ReBufferAddVec3(b, f.b.normal);
-        ReBufferAddVec3(b, f.c.normal);
-
-        if(vector_size(tokens) > 4)
-        {
-          ReBufferAddVec3(b, qf.a.normal);
-          ReBufferAddVec3(b, qf.b.normal);
-          ReBufferAddVec3(b, qf.c.normal);
-        }
-      }
-
-      if(vector_size(lightmaps) > 0)
-      {
-        ref(ReBuffer) b = ReMeshLightMapBuffer(_(mg).mesh);
-
-        if(!b)
-        {
-          b = ReContextCreateBuffer(context);
-          ReMeshSetLightMapBuffer(_(mg).mesh, b);
-        }
-
-        ReBufferAddVec2(b, f.a.lightMap);
-        ReBufferAddVec2(b, f.b.lightMap);
-        ReBufferAddVec2(b, f.c.lightMap);
-
-        if(vector_size(tokens) > 4)
-        {
-          ReBufferAddVec2(b, qf.a.lightMap);
-          ReBufferAddVec2(b, qf.b.lightMap);
-          ReBufferAddVec2(b, qf.c.lightMap);
-        }
+        ReMeshAddFace(_(mg).mesh, qf);
       }
     }
     else if(strcmp(sstream_cstr(vector_at(tokens, 0)), "mtllib") == 0)

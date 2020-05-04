@@ -3,6 +3,8 @@
 
 #include <GL/glew.h>
 
+struct ReFace;
+
 struct ReContext
 {
   int todo;
@@ -26,6 +28,8 @@ struct ReMesh
   ref(ReBuffer) normal;
   ref(ReBuffer) texture;
   ref(ReBuffer) lightMap;
+  vector(struct ReFace) faces;
+  int dirty;
 };
 
 struct ReShader

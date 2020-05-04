@@ -4,19 +4,9 @@
 #include "Context.h"
 #include "util.h"
 #include "mathutil.h"
+#include "Face.h"
 
 #include <stdio.h>
-
-struct Face
-{
-  struct ReVec3 pa;
-  struct ReVec3 pb;
-  struct ReVec3 pc;
-
-  struct ReVec3 na;
-  struct ReVec3 nb;
-  struct ReVec3 nc;
-};
 
 void ReMeshDestroy(ref(ReMesh) ctx)
 {
@@ -40,26 +30,82 @@ void ReMeshDestroy(ref(ReMesh) ctx)
     ReBufferDestroy(_(ctx).lightMap);
   }
 
+  vector_delete(_(ctx).faces);
   release(ctx);
+}
+
+static void upload(ref(ReMesh) ctx)
+{
+  size_t fi = 0;
+
+  if(_(ctx).position)
+  {
+    for(fi = 0; fi < vector_size(_(ctx).faces); fi++)
+    {
+      struct ReFace f = vector_at(_(ctx).faces, fi);
+      ReBufferAddVec3(_(ctx).position, f.a.position);
+      ReBufferAddVec3(_(ctx).position, f.b.position);
+      ReBufferAddVec3(_(ctx).position, f.c.position);
+    }
+  }
+
+  if(_(ctx).normal)
+  {
+    for(fi = 0; fi < vector_size(_(ctx).faces); fi++)
+    {
+      struct ReFace f = vector_at(_(ctx).faces, fi);
+      ReBufferAddVec3(_(ctx).normal, f.a.normal);
+      ReBufferAddVec3(_(ctx).normal, f.b.normal);
+      ReBufferAddVec3(_(ctx).normal, f.c.normal);
+    }
+  }
+
+  if(_(ctx).texture)
+  {
+    for(fi = 0; fi < vector_size(_(ctx).faces); fi++)
+    {
+      struct ReFace f = vector_at(_(ctx).faces, fi);
+      ReBufferAddVec2(_(ctx).texture, f.a.texCoord);
+      ReBufferAddVec2(_(ctx).texture, f.b.texCoord);
+      ReBufferAddVec2(_(ctx).texture, f.c.texCoord);
+    }
+  }
+
+  if(_(ctx).lightMap)
+  {
+    for(fi = 0; fi < vector_size(_(ctx).faces); fi++)
+    {
+      struct ReFace f = vector_at(_(ctx).faces, fi);
+      ReBufferAddVec2(_(ctx).lightMap, f.a.lmCoord);
+      ReBufferAddVec2(_(ctx).lightMap, f.b.lmCoord);
+      ReBufferAddVec2(_(ctx).lightMap, f.c.lmCoord);
+    }
+  }
+
+  _(ctx).dirty = 0;
 }
 
 ref(ReBuffer) ReMeshPositionBuffer(ref(ReMesh) ctx)
 {
+  if(_(ctx).dirty) upload(ctx);
   return _(ctx).position;
 }
 
 ref(ReBuffer) ReMeshLightMapBuffer(ref(ReMesh) ctx)
 {
+  if(_(ctx).dirty) upload(ctx);
   return _(ctx).lightMap;
 }
 
 ref(ReBuffer) ReMeshTextureBuffer(ref(ReMesh) ctx)
 {
+  if(_(ctx).dirty) upload(ctx);
   return _(ctx).texture;
 }
 
 ref(ReBuffer) ReMeshNormalBuffer(ref(ReMesh) ctx)
 {
+  if(_(ctx).dirty) upload(ctx);
   return _(ctx).normal;
 }
 
@@ -93,8 +139,8 @@ void ReMeshParse(ref(ReMesh) ctx, char *objData)
   vector(struct ReVec3) positions = NULL;
   vector(struct ReVec3) normals = NULL;
   vector(ref(sstream)) sub = NULL;
-  struct Face f = {0};
-  struct Face qf = {0};
+  struct ReFace f = {0};
+  struct ReFace qf = {0};
 
   data = sstream_new();
   sstream_str_cstr(data, objData);
@@ -132,57 +178,31 @@ void ReMeshParse(ref(ReMesh) ctx, char *objData)
     else if(strcmp(sstream_cstr(vector_at(tokens, 0)), "f") == 0)
     {
       SplitString(vector_at(tokens, 1), '/', sub);
-      if(vector_size(sub) >= 1) f.pa = vector_at(positions, atoi(sstream_cstr(vector_at(sub, 0))) - 1);
-      if(vector_size(sub) >= 3) f.na = vector_at(normals, atoi(sstream_cstr(vector_at(sub, 2))) - 1);
+      if(vector_size(sub) >= 1) f.a.position = vector_at(positions, atoi(sstream_cstr(vector_at(sub, 0))) - 1);
+      if(vector_size(sub) >= 3) f.a.normal = vector_at(normals, atoi(sstream_cstr(vector_at(sub, 2))) - 1);
 
       SplitString(vector_at(tokens, 2), '/', sub);
-      if(vector_size(sub) >= 1) f.pb = vector_at(positions, atoi(sstream_cstr(vector_at(sub, 0))) - 1);
-      if(vector_size(sub) >= 3) f.nb = vector_at(normals, atoi(sstream_cstr(vector_at(sub, 2))) - 1);
+      if(vector_size(sub) >= 1) f.b.position = vector_at(positions, atoi(sstream_cstr(vector_at(sub, 0))) - 1);
+      if(vector_size(sub) >= 3) f.b.normal = vector_at(normals, atoi(sstream_cstr(vector_at(sub, 2))) - 1);
 
       SplitString(vector_at(tokens, 3), '/', sub);
-      if(vector_size(sub) >= 1) f.pc = vector_at(positions, atoi(sstream_cstr(vector_at(sub, 0))) - 1);
-      if(vector_size(sub) >= 3) f.nc = vector_at(normals, atoi(sstream_cstr(vector_at(sub, 2))) - 1);
+      if(vector_size(sub) >= 1) f.c.position = vector_at(positions, atoi(sstream_cstr(vector_at(sub, 0))) - 1);
+      if(vector_size(sub) >= 3) f.c.normal = vector_at(normals, atoi(sstream_cstr(vector_at(sub, 2))) - 1);
 
-      if(vector_size(positions) > 0)
-      {
-        if(!_(ctx).position) _(ctx).position = ReContextCreateBuffer(_(ctx).context);
-        ReBufferAddVec3(_(ctx).position, f.pa);
-        ReBufferAddVec3(_(ctx).position, f.pb);
-        ReBufferAddVec3(_(ctx).position, f.pc);
-      }
-
-      if(vector_size(normals) > 0)
-      {
-        if(!_(ctx).normal) _(ctx).normal = ReContextCreateBuffer(_(ctx).context);
-        ReBufferAddVec3(_(ctx).normal, f.na);
-        ReBufferAddVec3(_(ctx).normal, f.nb);
-        ReBufferAddVec3(_(ctx).normal, f.nc);
-      }
+      ReMeshAddFace(ctx, f);
 
       if(vector_size(tokens) < 5) continue;
-      qf.pa = f.pc;
-      qf.na = f.nc;
+      qf.a.position = f.c.position;
+      qf.a.normal = f.c.normal;
 
       SplitString(vector_at(tokens, 4), '/', sub);
-      if(vector_size(sub) >= 1) qf.pb = vector_at(positions, atoi(sstream_cstr(vector_at(sub, 0))) - 1);
-      if(vector_size(sub) >= 3) qf.nb = vector_at(normals, atoi(sstream_cstr(vector_at(sub, 2))) - 1);
+      if(vector_size(sub) >= 1) qf.b.position = vector_at(positions, atoi(sstream_cstr(vector_at(sub, 0))) - 1);
+      if(vector_size(sub) >= 3) qf.b.normal = vector_at(normals, atoi(sstream_cstr(vector_at(sub, 2))) - 1);
 
-      qf.pc = f.pa;
-      qf.nc = f.na;
+      qf.c.position = f.a.position;
+      qf.c.normal = f.a.normal;
 
-      if(vector_size(positions) > 0)
-      {
-        ReBufferAddVec3(_(ctx).position, qf.pa);
-        ReBufferAddVec3(_(ctx).position, qf.pb);
-        ReBufferAddVec3(_(ctx).position, qf.pc);
-      }
-
-      if(vector_size(normals) > 0)
-      {
-        ReBufferAddVec3(_(ctx).normal, qf.na);
-        ReBufferAddVec3(_(ctx).normal, qf.nb);
-        ReBufferAddVec3(_(ctx).normal, qf.nc);
-      }
+      ReMeshAddFace(ctx, qf);
     }
   }
 
@@ -191,4 +211,68 @@ void ReMeshParse(ref(ReMesh) ctx, char *objData)
   vector_delete(positions);
   vector_sstream_delete(tokens);
   vector_sstream_delete(lines);
+}
+
+void ReMeshAddFace(ref(ReMesh) ctx, struct ReFace face)
+{
+  vector_push_back(_(ctx).faces, face);
+  _(ctx).dirty = 1;
+
+  if(!_(ctx).position)
+  {
+    if(face.a.position.x != 0 ||
+      face.a.position.y != 0 ||
+      face.a.position.z != 0 ||
+      face.b.position.x != 0 ||
+      face.b.position.y != 0 ||
+      face.b.position.z != 0 ||
+      face.c.position.x != 0 ||
+      face.c.position.y != 0 ||
+      face.c.position.z != 0)
+    {
+      _(ctx).position = ReContextCreateBuffer(_(ctx).context);
+    }
+  }
+
+  if(!_(ctx).normal)
+  {
+    if(face.a.normal.x != 0 ||
+      face.a.normal.y != 0 ||
+      face.a.normal.z != 0 ||
+      face.b.normal.x != 0 ||
+      face.b.normal.y != 0 ||
+      face.b.normal.z != 0 ||
+      face.c.normal.x != 0 ||
+      face.c.normal.y != 0 ||
+      face.c.normal.z != 0)
+    {
+      _(ctx).normal = ReContextCreateBuffer(_(ctx).context);
+    }
+  }
+
+  if(!_(ctx).texture)
+  {
+    if(face.a.texCoord.x != 0 ||
+      face.a.texCoord.y != 0 ||
+      face.b.texCoord.x != 0 ||
+      face.b.texCoord.y != 0 ||
+      face.c.texCoord.x != 0 ||
+      face.c.texCoord.y != 0)
+    {
+      _(ctx).texture = ReContextCreateBuffer(_(ctx).context);
+    }
+  }
+
+  if(!_(ctx).lightMap)
+  {
+    if(face.a.lmCoord.x != 0 ||
+      face.a.lmCoord.y != 0 ||
+      face.b.lmCoord.x != 0 ||
+      face.b.lmCoord.y != 0 ||
+      face.c.lmCoord.x != 0 ||
+      face.c.lmCoord.y != 0)
+    {
+      _(ctx).lightMap = ReContextCreateBuffer(_(ctx).context);
+    }
+  }
 }

@@ -169,7 +169,12 @@ def exportMaterials(state):
 
   for sg in state.shadowGroups:
     sg.texture.filepath_raw = state.outDir + "/" + sg.obj.name + "_lightmap." + state.lightMapFormat
-    sg.texture.file_format = 'PNG'
+
+    if state.lightMapFormat == 'png':
+      sg.texture.file_format = 'PNG'
+    else:
+      sg.texture.file_format = 'JPEG'
+
     sg.texture.save()
 
     for mg in sg.materialGroups:

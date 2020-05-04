@@ -11,8 +11,18 @@ def clean(state):
       continue
 
     removeUntextured(obj)
+    removeEmpty(obj)
 
-    # TODO: Remove objects with no faces
+#######################################################################
+# removeEmpty
+#######################################################################
+def removeEmpty(obj):
+    if len(obj.data.polygons) > 0:
+      return
+
+    selectObj(obj)
+    bpy.ops.object.delete()
+    selectObj(None)
 
 #######################################################################
 # removeUntextured

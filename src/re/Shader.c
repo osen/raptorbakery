@@ -71,6 +71,7 @@ const char *fragSrc =
   "    vec4 lm = texture2D(u_LightMap, v_LightMap);    " \
   "    col = col * lm;                                 " \
   "  }                                                 " \
+  "  if(col.w < 0.5) discard;                          " \
   "  gl_FragColor = col;                               " \
   "}                                                   ";
 

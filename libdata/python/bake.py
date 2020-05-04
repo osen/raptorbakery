@@ -56,7 +56,12 @@ def bakeObj(obj):
 
   #bpy.context.scene.cycles.samples = 24
   #bpy.context.scene.cycles.use_square_samples = True
-  bpy.ops.object.bake(type='SHADOW')
+  #bpy.ops.object.bake(type='SHADOW')
+  #bpy.ops.object.bake(type='COMBINED')
+  #bpy.context.scene.cycles.use_pass_indirect = False
+
+  #bpy.ops.object.bake(type='DIFFUSE', pass_filter={'DIRECT'})
+  bpy.ops.object.bake(type='COMBINED', pass_filter={'DIRECT', 'DIFFUSE'})
 
   selectObj(None)
 

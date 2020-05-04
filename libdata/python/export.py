@@ -46,6 +46,9 @@ def outputFaces(state, f):
     f.write("o " + sg.obj.name + "\n")
 
     for mg in sg.materialGroups:
+      if len(mg.faces) < 1:
+        continue;
+
       f.write("usemtl " + sg.obj.name + "_" + mg.texture.name + "\n")
 
       for face in mg.faces:
@@ -170,6 +173,9 @@ def exportMaterials(state):
     sg.texture.save()
 
     for mg in sg.materialGroups:
+      if len(mg.faces) < 1:
+        continue;
+
       copyfile(mg.texture.filepath, state.outDir + "/" + mg.texture.name)
       f.write("newmtl " + sg.obj.name + "_" + mg.texture.name + "\n")
       f.write("map_Kd " + mg.texture.name + "\n")

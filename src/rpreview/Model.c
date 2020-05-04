@@ -312,6 +312,10 @@ void ModelRender(ref(Model) ctx, ref(ReRenderer) renderer)
   for(mgi = 0; mgi < vector_size(_(ctx).groups); mgi++)
   {
     ref(MaterialGroup) mg = vector_at(_(ctx).groups, mgi);
+    //ref(ReMesh) mesh = _(mg).mesh;
+
+    //if(!ReMeshPositionBuffer(mesh)) continue;
+
     ReRendererSetTexture(renderer, _(mg).texture);
     ReRendererSetLightMap(renderer, _(mg).lightMap);
     ReRendererSetMesh(renderer, _(mg).mesh);

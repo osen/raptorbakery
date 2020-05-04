@@ -54,6 +54,10 @@ const char *fragSrc =
   "void main()                                         " \
   "{                                                   " \
   "  vec4 col = vec4(1, 1, 1, 1) * u_Color;            " \
+  "  if(u_EnableTexturing)                             " \
+  "  {                                                 " \
+  "    col = texture2D(u_Texture, v_Texture);          " \
+  "  }                                                 " \
   "  if(u_EnableLighting)                              " \
   "  {                                                 " \
   "    vec3 lightPos = vec3(50, 100, 75);              " \
@@ -62,20 +66,13 @@ const char *fragSrc =
   "    float diff = max(dot(N, L), 0.0);               " \
   "    col.xyz = col.xyz * diff;                       " \
   "  }                                                 " \
-  "  if(u_EnableTexturing)                             " \
-  "  {                                                 " \
-  "    vec4 tex = texture2D(u_Texture, v_Texture);     " \
-  "    vec4 lm = texture2D(u_LightMap, v_LightMap);    " \
-  "    gl_FragColor = tex * lm;                        " \
-  "  }                                                 " \
   "  else                                              " \
   "  {                                                 " \
-  "    gl_FragColor = col;                             " \
+  "    vec4 lm = texture2D(u_LightMap, v_LightMap);    " \
+  "    col = col * lm;                                 " \
   "  }                                                 " \
+  "  gl_FragColor = col;                               " \
   "}                                                   ";
-
-  //"    gl_FragColor.x = v_Texture.x;                   " \
-  //"    gl_FragColor.y = v_LightMap.x;                  " \
 
 ref(ReShader) _ReShaderCreate(ref(ReContext) context)
 {

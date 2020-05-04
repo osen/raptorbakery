@@ -64,11 +64,17 @@ ReMat4 CameraView(ref(Camera) ctx);
 ReMat4 CameraProjection(ref(Camera) ctx);
 void ObjectRender(ref(Object) obj);
 
-int main()
+int main(int argc, char *argv[])
 {
   ref(State) state = NULL;
   ssize_t oi = 0;
   ref(Object) obj = NULL;
+
+  if(argc < 2)
+  {
+    printf("Usage: %s <.obj>\n", argv[0]);
+    exit(1);
+  }
 
   state = StateCreate();
 
@@ -98,7 +104,7 @@ int main()
   _(obj).type = 99;
   vector_push_back(_(state).objects, obj);
 
-  _(state).model = ModelLoad(_(state).context, "tmp/out.obj");
+  _(state).model = ModelLoad(_(state).context, argv[1]);
   _(state).tex = TextureLoad(_(state).context, "tmp/rock1.png");
   _(state).lm = TextureLoad(_(state).context, "tmp/Cube_Cube.001_lightmap.png");
 
@@ -256,7 +262,7 @@ void ObjectRender(ref(Object) ctx)
   else if(_(ctx).type == RE_MODEL)
   {
     mesh = ModelMesh(_(state).model);
-    //ReRendererSetLighting(renderer, 0);
+    ReRendererSetLighting(renderer, 0);
     ReRendererSetTexturing(renderer, 1);
     ReRendererSetTexture(renderer, _(state).tex);
     ReRendererSetLightMap(renderer, _(state).lm);

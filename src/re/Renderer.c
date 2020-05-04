@@ -144,9 +144,9 @@ void ReRendererRender(ref(ReRenderer) ctx)
 
   if(!_(ctx).lightMap)
   {
-    if(_(ctx).texturing)
+    if(!_(ctx).lighting)
     {
-      panic("Texturing enabled but no lightmap coordinates provided");
+      panic("Dynamic lighting disabled but no lightmap coordinates provided");
     }
   }
   else

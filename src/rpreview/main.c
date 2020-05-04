@@ -51,9 +51,6 @@ struct State
   vector(ref(Object)) objects;
   ref(Object) ground;
   ref(Model) model;
-
-  ref(ReTexture) tex;
-  ref(ReTexture) lm;
 };
 
 ref(State) StateCreate();
@@ -105,8 +102,6 @@ int main(int argc, char *argv[])
   vector_push_back(_(state).objects, obj);
 
   _(state).model = ModelLoad(_(state).context, argv[1]);
-  _(state).tex = TextureLoad(_(state).context, "tmp/rock1.png");
-  _(state).lm = TextureLoad(_(state).context, "tmp/Cube_Cube.001_lightmap.png");
 
   int running = 1;
   SDL_Event e = {0};
@@ -240,8 +235,6 @@ void ObjectRender(ref(Object) ctx)
   model = ReMat4Scale(model, _(ctx).scale);
 
   mesh = _(state).cube;
-  ReRendererSetLighting(renderer, 1);
-  ReRendererSetTexturing(renderer, 0);
 
   if(_(ctx).type == RE_PRIMITIVE_CUBE)
   {
@@ -259,14 +252,6 @@ void ObjectRender(ref(Object) ctx)
   {
     mesh = _(state).triangle;
   }
-  else if(_(ctx).type == RE_MODEL)
-  {
-    mesh = ModelMesh(_(state).model);
-    ReRendererSetLighting(renderer, 0);
-    ReRendererSetTexturing(renderer, 1);
-    ReRendererSetTexture(renderer, _(state).tex);
-    ReRendererSetLightMap(renderer, _(state).lm);
-  }
 
   ReRendererSetBackfaceCull(renderer, 1);
 
@@ -278,9 +263,21 @@ void ObjectRender(ref(Object) ctx)
   ReRendererSetModel(renderer, model);
   ReRendererSetView(renderer, CameraView(_(state).camera));
   ReRendererSetProjection(renderer, CameraProjection(_(state).camera));
-  ReRendererSetColor(renderer, _(ctx).color);
-  ReRendererSetMesh(renderer, mesh);
-  ReRendererRender(renderer);
+
+  if(_(ctx).type == RE_MODEL)
+  {
+    ReRendererSetLighting(renderer, 0);
+    ReRendererSetTexturing(renderer, 1);
+    ModelRender(_(state).model, renderer);
+  }
+  else
+  {
+    ReRendererSetLighting(renderer, 1);
+    ReRendererSetTexturing(renderer, 0);
+    ReRendererSetColor(renderer, _(ctx).color);
+    ReRendererSetMesh(renderer, mesh);
+    ReRendererRender(renderer);
+  }
 }
 
 ref(State) StateCreate()
@@ -364,8 +361,6 @@ void StateDestroy(ref(State) ctx)
   ReMeshDestroy(_(ctx).square);
   ReMeshDestroy(_(ctx).triangle);
   ModelDestroy(_(ctx).model);
-  ReTextureDestroy(_(ctx).tex);
-  ReTextureDestroy(_(ctx).lm);
 
   ReRendererDestroy(_(ctx).renderer);
   ReContextDestroy(_(ctx).context);

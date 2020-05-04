@@ -9,14 +9,7 @@
 
 #include <stdio.h>
 
-struct Material
-{
-  ref(sstream) name;
-  ref(ReTexture) texture;
-  ref(ReTexture) lightMap;
-};
-
-ref(MaterialGroup) ModelMaterialGroup(ref(Model) ctx, ref(ReTexture) texture)
+ref(MaterialGroup) ModelMaterialGroup(ref(Model) ctx, ref(sstream) name)
 {
   ref(MaterialGroup) rtn = NULL;
   size_t mgi = 0;
@@ -25,18 +18,15 @@ ref(MaterialGroup) ModelMaterialGroup(ref(Model) ctx, ref(ReTexture) texture)
   {
     rtn = vector_at(_(ctx).groups, mgi);
 
-    if(_(rtn).texture == texture)
+    if(strcmp(sstream_cstr(_(rtn).name), sstream_cstr(name)) == 0)
     {
       return rtn;
     }
   }
 
-  rtn = allocate(MaterialGroup);
-  _(rtn).texture = texture;
-  _(rtn).mesh = ReContextCreateMesh(_(ctx).context);
-  vector_push_back(_(ctx).groups, rtn);
+  panic("Invalid material name specified");
 
-  return rtn;
+  return NULL;
 }
 
 void ModelDestroy(ref(Model) ctx)
@@ -47,7 +37,9 @@ void ModelDestroy(ref(Model) ctx)
   {
     ref(MaterialGroup) mg = vector_at(_(ctx).groups, mgi);
 
-    //ReTextureDestroy(_(mg).texture);
+    ReTextureDestroy(_(mg).texture);
+    ReTextureDestroy(_(mg).lightMap);
+    sstream_delete(_(mg).name);
     ReMeshDestroy(_(mg).mesh);
     release(mg);
   }
@@ -66,10 +58,19 @@ ref(Model) ModelCreate()
   return rtn;
 }
 
-static void processMtl(ref(Model) ctx, ref(sstream) path, vector(ref(Material)) materials)
+static void processMtl(ref(Model) ctx, ref(sstream) basePath, ref(sstream) fileName)
 {
-  ref(ifstream) file = ifstream_open(path);
+  ref(ifstream) file = NULL;
   ref(sstream) line = sstream_new();
+  vector(ref(sstream)) tokens = vector_new(ref(sstream));
+  ref(MaterialGroup) mg = NULL;
+  ref(sstream) path = sstream_new();
+
+  sstream_str(path, basePath);
+  sstream_append_char(path, '/');
+  sstream_append(path, fileName);
+
+  file = ifstream_open(path);
 
   if(!file)
   {
@@ -82,10 +83,39 @@ static void processMtl(ref(Model) ctx, ref(sstream) path, vector(ref(Material)) 
   {
     ifstream_getline(file, line);
     //printf("Line: %s\n", sstream_cstr(line));
+    if(sstream_length(line) < 1) continue;
+    SplitStringWhitespace(line, tokens);
+    if(vector_size(tokens) < 1) continue;
+
+    if(strcmp(sstream_cstr(vector_at(tokens, 0)), "newmtl") == 0)
+    {
+      mg = allocate(MaterialGroup);
+
+      _(mg).mesh = ReContextCreateMesh(_(ctx).context);
+      _(mg).name = sstream_new();
+      sstream_str(_(mg).name, vector_at(tokens, 1));
+      vector_push_back(_(ctx).groups, mg);
+    }
+    else if(strcmp(sstream_cstr(vector_at(tokens, 0)), "map_Kd") == 0)
+    {
+      sstream_str(path, basePath);
+      sstream_append_char(path, '/');
+      sstream_append(path, vector_at(tokens, 1));
+      _(mg).texture = TextureLoad(_(ctx).context, sstream_cstr(path));
+    }
+    else if(strcmp(sstream_cstr(vector_at(tokens, 0)), "map_Kl") == 0)
+    {
+      sstream_str(path, basePath);
+      sstream_append_char(path, '/');
+      sstream_append(path, vector_at(tokens, 1));
+      _(mg).lightMap = TextureLoad(_(ctx).context, sstream_cstr(path));
+    }
   }
 
+  vector_sstream_delete(tokens);
   ifstream_close(file);
   sstream_delete(line);
+  sstream_delete(path);
 }
 
 ref(ReTexture) TextureLoad(ref(ReContext) context, char *path)
@@ -124,10 +154,8 @@ ref(Model) ModelLoad(ref(ReContext) context, char *path)
 
   ref(ifstream) file = NULL;
   ref(sstream) filePath = NULL;
-  ref(sstream) mtlPath = NULL;
   int ci = 0;
-  ref(ReTexture) ct = NULL;
-  vector(ref(Material)) materials = NULL;
+  ref(MaterialGroup) mg = NULL;
 
   ref(sstream) line = NULL;
   vector(ref(sstream)) tokens = NULL;
@@ -174,8 +202,6 @@ ref(Model) ModelLoad(ref(ReContext) context, char *path)
 
   rtn = ModelCreate();
   line = sstream_new();
-  mtlPath = sstream_new();
-  materials = vector_new(ref(Material));
 
   while(!ifstream_eof(file))
   {
@@ -210,13 +236,14 @@ ref(Model) ModelLoad(ref(ReContext) context, char *path)
         atof(sstream_cstr(vector_at(tokens, 1))),
         atof(sstream_cstr(vector_at(tokens, 2)))));
     }
+    else if(strcmp(sstream_cstr(vector_at(tokens, 0)), "usemtl") == 0)
+    {
+      mg = ModelMaterialGroup(rtn, vector_at(tokens, 1));
+    }
     else if(strcmp(sstream_cstr(vector_at(tokens, 0)), "f") == 0)
     {
-      ref(MaterialGroup) mg = NULL;
       struct ReFace f = {0};
       struct ReFace qf = {0};
-
-      mg = ModelMaterialGroup(rtn, ct);
 
       SplitString(vector_at(tokens, 1), '/', sub);
       if(vector_size(sub) >= 1 && sstream_length(vector_at(sub, 0)) > 0) f.a.position = vector_at(positions, atoi(sstream_cstr(vector_at(sub, 0))) - 1);
@@ -261,22 +288,10 @@ ref(Model) ModelLoad(ref(ReContext) context, char *path)
     }
     else if(strcmp(sstream_cstr(vector_at(tokens, 0)), "mtllib") == 0)
     {
-      sstream_str(mtlPath, filePath);
-      sstream_append_char(mtlPath, '/');
-      sstream_append(mtlPath, vector_at(tokens, 1));
-      processMtl(rtn, mtlPath, materials);
+      processMtl(rtn, filePath, vector_at(tokens, 1));
     }
   }
 
-  for(ci = 0; ci < vector_size(materials); ci++)
-  {
-    ref(Material) m = vector_at(materials, ci);
-
-    release(m);
-  }
-
-  vector_delete(materials);
-  sstream_delete(mtlPath);
   sstream_delete(filePath);
   ifstream_close(file);
   vector_sstream_delete(sub);
@@ -290,9 +305,16 @@ ref(Model) ModelLoad(ref(ReContext) context, char *path)
   return rtn;
 }
 
-ref(ReMesh) ModelMesh(ref(Model) ctx)
+void ModelRender(ref(Model) ctx, ref(ReRenderer) renderer)
 {
-  ref(MaterialGroup) mg = vector_at(_(ctx).groups, 0);
+  size_t mgi = 0;
 
-  return _(mg).mesh;
+  for(mgi = 0; mgi < vector_size(_(ctx).groups); mgi++)
+  {
+    ref(MaterialGroup) mg = vector_at(_(ctx).groups, mgi);
+    ReRendererSetTexture(renderer, _(mg).texture);
+    ReRendererSetLightMap(renderer, _(mg).lightMap);
+    ReRendererSetMesh(renderer, _(mg).mesh);
+    ReRendererRender(renderer);
+  }
 }

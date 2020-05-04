@@ -34,6 +34,7 @@ def exportObj(state):
 
   f = open(state.outDir + "/" + state.outName + ".obj", "w")
   f.write("# Raptor Bakery OBJ File\n\n")
+  f.write("mtllib " + state.outName + ".mtl\n\n")
 
   outputVerts(state, f)
   outputFaces(state, f)

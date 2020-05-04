@@ -13,6 +13,6 @@ struct Model
 ref(Model) ModelLoad(ref(ReContext) context, char *path);
 void ModelDestroy(ref(Model) ctx);
 
-ref(ReMesh) ModelMesh(ref(Model) ctx);
+void ModelRender(ref(Model) ctx, ref(ReRenderer) renderer);
 
 ref(ReTexture) TextureLoad(ref(ReContext) context, char *path);

@@ -5,5 +5,7 @@
 struct MaterialGroup
 {
   ref(ReTexture) texture;
+  ref(ReTexture) lightMap;
   ref(ReMesh) mesh;
+  ref(sstream) name;
 };

@@ -1,5 +1,5 @@
 # Blender MTL File: 'bl1.blend'
-# Material Count: 14
+# Material Count: 16
 
 newmtl None
 Ns 0
@@ -63,6 +63,15 @@ d 1
 illum 2
 map_Kd dirt.png
 
+newmtl None_door.png
+Ns 0
+Ka 0.000000 0.000000 0.000000
+Kd 0.8 0.8 0.8
+Ks 0.8 0.8 0.8
+d 1
+illum 2
+map_Kd door.png
+
 newmtl None_fence.png
 Ns 0
 Ka 0.000000 0.000000 0.000000
@@ -116,6 +125,15 @@ Ks 0.8 0.8 0.8
 d 1
 illum 2
 map_Kd tombstone.png
+
+newmtl None_wallpaper.png
+Ns 0
+Ka 0.000000 0.000000 0.000000
+Kd 0.8 0.8 0.8
+Ks 0.8 0.8 0.8
+d 1
+illum 2
+map_Kd wallpaper.png
 
 newmtl None_white.png
 Ns 0
